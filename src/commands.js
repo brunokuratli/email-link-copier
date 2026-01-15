@@ -29,18 +29,23 @@ function copyEmailLink(event) {
 
                 const emailLink = `https://outlook.office.com/mail/id/${restId}`;
 
+                // Log the generated link for debugging
+                console.log("Generated email link:", emailLink);
+
                 copyToClipboardCommand(emailLink).then((success) => {
                     clearTimeout(timeout);
+                    console.log("Clipboard operation result:", success);
                     if (success) {
-                        showNotification("Success", "Email link copied to clipboard!");
+                        showNotification("Success", "Link copied! Paste it anywhere.");
                     } else {
-                        showNotification("Error", "Failed to copy email link. Link: " + emailLink);
+                        // If clipboard fails, show the link in the notification
+                        showNotification("Link Generated", emailLink.substring(0, 100));
                     }
                     event.completed();
                 }).catch((error) => {
                     clearTimeout(timeout);
                     console.error("Clipboard error:", error);
-                    showNotification("Error", "Clipboard failed. Link: " + emailLink);
+                    showNotification("Link", emailLink.substring(0, 100));
                     event.completed();
                 });
             } catch (error) {
@@ -59,29 +64,44 @@ function copyEmailLink(event) {
 }
 
 async function copyToClipboardCommand(text) {
+    // Try multiple methods in order of preference
+
+    // Method 1: Try navigator.clipboard (modern API)
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(text);
+            console.log("Copied using navigator.clipboard");
             return true;
-        } else {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-
-            return successful;
         }
     } catch (error) {
-        console.error("Error copying to clipboard:", error);
-        return false;
+        console.log("navigator.clipboard failed:", error);
     }
+
+    // Method 2: Try execCommand with textarea (fallback)
+    try {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+
+        if (successful) {
+            console.log("Copied using execCommand");
+            return true;
+        }
+    } catch (error) {
+        console.error("execCommand failed:", error);
+    }
+
+    // If both methods fail, return false
+    console.error("All clipboard methods failed");
+    return false;
 }
 
 function showNotification(title, message) {
