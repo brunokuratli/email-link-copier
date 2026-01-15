@@ -11,8 +11,8 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Email Link Copier"/>
   <Description DefaultValue="Copy the URL of the currently opened email to your clipboard"/>
-  <IconUrl DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-32.svg"/>
-  <HighResolutionIconUrl DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-64.svg"/>
+  <IconUrl DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://brunokuratli.github.io/email-link-copier"/>
 
   <AppDomains>
@@ -102,9 +102,9 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-16.svg"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-32.svg"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-80.svg"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://brunokuratli.github.io/email-link-copier/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
         <bt:Url id="Commands.Url" DefaultValue="https://brunokuratli.github.io/email-link-copier/commands.html"/>
