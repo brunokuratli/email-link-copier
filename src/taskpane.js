@@ -25,28 +25,50 @@ async function getEmailLink() {
             throw new Error("Unable to get email ID");
         }
 
-        // Try different link formats based on what's available
+        // Get the web link using the Office.js API
+        // This is the most reliable way to get a sharable link
         let emailLink;
 
-        try {
-            // Try to convert to REST ID format
-            if (Office.context.mailbox.convertToRestId) {
-                const restId = Office.context.mailbox.convertToRestId(
-                    itemId,
-                    Office.MailboxEnums.RestVersion.v2_0
-                );
-                emailLink = `https://outlook.office365.com/mail/deeplink/read/${restId}`;
-            } else {
-                // Fallback: use itemId directly
-                emailLink = `https://outlook.office365.com/mail/deeplink/read/${itemId}`;
-            }
-        } catch (convertError) {
-            console.error("Error converting to REST ID, using itemId directly:", convertError);
-            // Fallback: use itemId directly
-            emailLink = `https://outlook.office365.com/mail/deeplink/read/${itemId}`;
-        }
+        // Try to use the getItemIdAsync method if available
+        return new Promise((resolve, reject) => {
+            // Use the item's web link property if available
+            if (Office.context.mailbox.item.itemType === Office.MailboxEnums.ItemType.Message) {
+                // For messages in Outlook Web, we can construct the URL
+                try {
+                    const restId = Office.context.mailbox.convertToRestId(
+                        itemId,
+                        Office.MailboxEnums.RestVersion.v2_0
+                    );
 
-        return emailLink;
+                    // Use the correct Outlook Web URL format
+                    // This format works for both outlook.office.com and outlook.office365.com
+                    const webClientUrl = Office.context.mailbox.ewsUrl || "";
+
+                    // Construct the URL based on the user's mailbox
+                    if (webClientUrl.includes("outlook.office365.com") || webClientUrl.includes("outlook.office.com")) {
+                        emailLink = `https://outlook.office365.com/mail/id/${restId}`;
+                    } else {
+                        emailLink = `https://outlook.office.com/mail/id/${restId}`;
+                    }
+
+                    resolve(emailLink);
+                } catch (error) {
+                    console.error("Error creating web link:", error);
+                    // Fallback: just use the REST ID
+                    try {
+                        const restId = Office.context.mailbox.convertToRestId(
+                            itemId,
+                            Office.MailboxEnums.RestVersion.v2_0
+                        );
+                        resolve(`https://outlook.office.com/mail/id/${restId}`);
+                    } catch (fallbackError) {
+                        reject(new Error("Unable to create email link: " + fallbackError.message));
+                    }
+                }
+            } else {
+                reject(new Error("Not a message item"));
+            }
+        });
     } catch (error) {
         console.error("Error in getEmailLink:", error);
         throw error;
