@@ -3,32 +3,59 @@ Office.onReady(() => {
 });
 
 function copyEmailLink(event) {
-    Office.context.mailbox.item.getItemIdAsync((result) => {
-        if (result.status === Office.AsyncResultStatus.Failed) {
-            console.error("Error getting item ID:", result.error);
-            showNotification("Error", "Failed to get email ID");
-            event.completed();
-            return;
-        }
+    // Safety timeout to ensure event.completed() is always called
+    const timeout = setTimeout(() => {
+        console.error("Function timeout - forcing completion");
+        event.completed();
+    }, 10000); // 10 second timeout
 
-        const itemId = result.value;
+    try {
+        Office.context.mailbox.item.getItemIdAsync((result) => {
+            try {
+                if (result.status === Office.AsyncResultStatus.Failed) {
+                    clearTimeout(timeout);
+                    console.error("Error getting item ID:", result.error);
+                    showNotification("Error", "Failed to get email ID");
+                    event.completed();
+                    return;
+                }
 
-        const restId = Office.context.mailbox.convertToRestId(
-            itemId,
-            Office.MailboxEnums.RestVersion.v2_0
-        );
+                const itemId = result.value;
 
-        const emailLink = `https://outlook.office.com/mail/id/${restId}`;
+                const restId = Office.context.mailbox.convertToRestId(
+                    itemId,
+                    Office.MailboxEnums.RestVersion.v2_0
+                );
 
-        copyToClipboardCommand(emailLink).then((success) => {
-            if (success) {
-                showNotification("Success", "Email link copied to clipboard!");
-            } else {
-                showNotification("Error", "Failed to copy email link");
+                const emailLink = `https://outlook.office.com/mail/id/${restId}`;
+
+                copyToClipboardCommand(emailLink).then((success) => {
+                    clearTimeout(timeout);
+                    if (success) {
+                        showNotification("Success", "Email link copied to clipboard!");
+                    } else {
+                        showNotification("Error", "Failed to copy email link. Link: " + emailLink);
+                    }
+                    event.completed();
+                }).catch((error) => {
+                    clearTimeout(timeout);
+                    console.error("Clipboard error:", error);
+                    showNotification("Error", "Clipboard failed. Link: " + emailLink);
+                    event.completed();
+                });
+            } catch (error) {
+                clearTimeout(timeout);
+                console.error("Error in getItemIdAsync callback:", error);
+                showNotification("Error", "An error occurred: " + error.message);
+                event.completed();
             }
-            event.completed();
         });
-    });
+    } catch (error) {
+        clearTimeout(timeout);
+        console.error("Error in copyEmailLink:", error);
+        showNotification("Error", "Failed to copy link");
+        event.completed();
+    }
 }
 
 async function copyToClipboardCommand(text) {
