@@ -19,7 +19,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@microsoft/msal-browser": "^2.14.2"
+    "@microsoft/msal-browser": "^3.0.0"
   },
   "devDependencies": {
     "webpack": "^5.75.0",
@@ -27,6 +27,8 @@
     "webpack-dev-server": "^4.11.1",
     "html-webpack-plugin": "^5.5.0",
     "copy-webpack-plugin": "^11.0.0",
+    "style-loader": "^3.3.0",
+    "css-loader": "^6.7.0",
     "office-addin-debugging": "^5.0.0",
     "office-addin-dev-certs": "^1.11.0",
     "office-addin-manifest": "^1.12.0"
