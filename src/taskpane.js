@@ -31,9 +31,12 @@ async function getEmailLink() {
             Office.MailboxEnums.RestVersion.v2_0
         );
 
-        // Use the deeplink/read format which works reliably
-        // Format: https://outlook.office365.com/mail/deeplink/read/[REST-ID]
-        const emailLink = `https://outlook.office365.com/mail/deeplink/read/${restId}`;
+        // URL encode the REST ID
+        const encodedRestId = encodeURIComponent(restId);
+
+        // Use the correct format: /mail/inbox/id/[encoded-REST-ID]
+        // This is the format that Outlook Web actually uses
+        const emailLink = `https://outlook.office.com/mail/inbox/id/${encodedRestId}`;
 
         return emailLink;
     } catch (error) {
