@@ -1,3 +1,5 @@
+import './taskpane.css';
+
 Office.onReady((info) => {
     if (info.host === Office.HostType.Outlook) {
         document.getElementById("copyLinkBtn").onclick = copyEmailLinkToClipboard;
