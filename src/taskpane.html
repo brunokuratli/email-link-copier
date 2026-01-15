@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Email Link Copier</title>
+
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.14.2/js/msal-browser.min.js"></script>
+    <link rel="stylesheet" href="taskpane.css">
+</head>
+
+<body>
+    <main class="container">
+        <header>
+            <h1>Email Link Copier</h1>
+        </header>
+
+        <section class="content">
+            <div id="status" class="status-message"></div>
+
+            <button id="copyLinkBtn" class="action-button">
+                <span class="button-icon">🔗</span>
+                Copy Email Link
+            </button>
+
+            <div id="linkDisplay" class="link-display" style="display: none;">
+                <label>Email Link:</label>
+                <input type="text" id="emailLink" readonly />
+            </div>
+
+            <div class="info-section">
+                <p class="info-text">Click the button above to copy the current email's URL to your clipboard.</p>
+            </div>
+        </section>
+    </main>
+
+    <script type="text/javascript" src="taskpane.js"></script>
+</body>
+</html>
