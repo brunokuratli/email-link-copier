@@ -25,18 +25,26 @@ async function getEmailLink() {
             throw new Error("Unable to get email ID");
         }
 
-        // Convert to REST ID format
-        const restId = Office.context.mailbox.convertToRestId(
-            itemId,
-            Office.MailboxEnums.RestVersion.v2_0
-        );
+        // Try different link formats based on what's available
+        let emailLink;
 
-        // Get the user's email address to build the correct link
-        const userEmail = Office.context.mailbox.userProfile.emailAddress;
-
-        // Build the Outlook web link using the deeplink format
-        // This format works for both Outlook Web and Desktop
-        const emailLink = `https://outlook.office365.com/mail/deeplink/read/${restId}`;
+        try {
+            // Try to convert to REST ID format
+            if (Office.context.mailbox.convertToRestId) {
+                const restId = Office.context.mailbox.convertToRestId(
+                    itemId,
+                    Office.MailboxEnums.RestVersion.v2_0
+                );
+                emailLink = `https://outlook.office365.com/mail/deeplink/read/${restId}`;
+            } else {
+                // Fallback: use itemId directly
+                emailLink = `https://outlook.office365.com/mail/deeplink/read/${itemId}`;
+            }
+        } catch (convertError) {
+            console.error("Error converting to REST ID, using itemId directly:", convertError);
+            // Fallback: use itemId directly
+            emailLink = `https://outlook.office365.com/mail/deeplink/read/${itemId}`;
+        }
 
         return emailLink;
     } catch (error) {
@@ -47,24 +55,42 @@ async function getEmailLink() {
 
 async function copyToClipboard(text) {
     try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(text);
-            return true;
-        } else {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
+        // Try multiple methods to copy to clipboard
 
+        // Method 1: Modern Clipboard API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (clipboardError) {
+                console.log("Clipboard API failed, trying fallback:", clipboardError);
+            }
+        }
+
+        // Method 2: execCommand fallback
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
             const successful = document.execCommand('copy');
             document.body.removeChild(textArea);
-
-            return successful;
+            if (successful) {
+                return true;
+            }
+        } catch (execError) {
+            console.error("execCommand failed:", execError);
+            document.body.removeChild(textArea);
         }
+
+        // If both methods fail, return false so user can copy manually
+        return false;
     } catch (error) {
         console.error("Error copying to clipboard:", error);
         return false;
@@ -92,19 +118,22 @@ function displayEmailLink(link) {
 
 async function copyEmailLinkToClipboard() {
     try {
+        showStatus("Getting email link...", false);
+
         const emailLink = await getEmailLink();
 
         displayEmailLink(emailLink);
 
+        showStatus("Copying to clipboard...", false);
         const copied = await copyToClipboard(emailLink);
 
         if (copied) {
-            showStatus("Email link copied to clipboard!");
+            showStatus("✓ Email link copied to clipboard!", false);
         } else {
-            showStatus("Failed to copy link. Please copy manually from below.", true);
+            showStatus("⚠ Could not copy automatically. Please copy the link manually below.", true);
         }
     } catch (error) {
         console.error("Error in copyEmailLinkToClipboard:", error);
-        showStatus("Error: Unable to get email link. " + error.message, true);
+        showStatus("✗ Error: " + error.message, true);
     }
 }
