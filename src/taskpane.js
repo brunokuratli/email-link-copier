@@ -12,25 +12,32 @@ Office.onReady((info) => {
 });
 
 async function getEmailLink() {
-    return new Promise((resolve, reject) => {
-        Office.context.mailbox.item.getItemIdAsync((result) => {
-            if (result.status === Office.AsyncResultStatus.Failed) {
-                console.error("Error getting item ID:", result.error);
-                reject(result.error);
-                return;
-            }
+    try {
+        // Check if we have access to the item
+        if (!Office.context.mailbox || !Office.context.mailbox.item) {
+            throw new Error("No email item is currently selected");
+        }
 
-            const itemId = result.value;
+        // Get the item ID directly from the item property
+        const itemId = Office.context.mailbox.item.itemId;
 
-            const restId = Office.context.mailbox.convertToRestId(
-                itemId,
-                Office.MailboxEnums.RestVersion.v2_0
-            );
+        if (!itemId) {
+            throw new Error("Unable to get email ID");
+        }
 
-            const emailLink = `https://outlook.office.com/mail/id/${restId}`;
-            resolve(emailLink);
-        });
-    });
+        // Convert to REST ID format
+        const restId = Office.context.mailbox.convertToRestId(
+            itemId,
+            Office.MailboxEnums.RestVersion.v2_0
+        );
+
+        // Build the Outlook web link
+        const emailLink = `https://outlook.office.com/mail/id/${restId}`;
+        return emailLink;
+    } catch (error) {
+        console.error("Error in getEmailLink:", error);
+        throw error;
+    }
 }
 
 async function copyToClipboard(text) {
