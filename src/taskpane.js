@@ -1,6 +1,11 @@
 Office.onReady((info) => {
     if (info.host === Office.HostType.Outlook) {
         document.getElementById("copyLinkBtn").onclick = copyEmailLinkToClipboard;
+
+        // Auto-copy when task pane opens
+        setTimeout(() => {
+            copyEmailLinkToClipboard();
+        }, 500); // Small delay to ensure Office.js is fully ready
     }
 });
 
