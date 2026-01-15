@@ -31,8 +31,13 @@ async function getEmailLink() {
             Office.MailboxEnums.RestVersion.v2_0
         );
 
-        // Build the Outlook web link
-        const emailLink = `https://outlook.office.com/mail/id/${restId}`;
+        // Get the user's email address to build the correct link
+        const userEmail = Office.context.mailbox.userProfile.emailAddress;
+
+        // Build the Outlook web link using the deeplink format
+        // This format works for both Outlook Web and Desktop
+        const emailLink = `https://outlook.office365.com/mail/deeplink/read/${restId}`;
+
         return emailLink;
     } catch (error) {
         console.error("Error in getEmailLink:", error);
