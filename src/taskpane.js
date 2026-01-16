@@ -18,25 +18,37 @@ async function getEmailLink() {
             throw new Error("No email item is currently selected");
         }
 
-        // Get the item ID directly from the property
+        // Get the item ID directly from the property (this is the EWS ID)
         const itemId = Office.context.mailbox.item.itemId;
 
         if (!itemId) {
             throw new Error("Unable to get email ID");
         }
 
-        // Convert to REST ID
-        const restId = Office.context.mailbox.convertToRestId(
+        // Log different ID formats for debugging
+        console.log("Original EWS ID:", itemId);
+
+        // Try REST v2.0 conversion
+        const restIdV2 = Office.context.mailbox.convertToRestId(
             itemId,
             Office.MailboxEnums.RestVersion.v2_0
         );
+        console.log("REST ID v2.0:", restIdV2);
 
-        // URL encode the REST ID for the query parameter
-        const encodedRestId = encodeURIComponent(restId);
+        // Try REST v1.0 conversion
+        const restIdV1 = Office.context.mailbox.convertToRestId(
+            itemId,
+            Office.MailboxEnums.RestVersion.v1_0
+        );
+        console.log("REST ID v1.0:", restIdV1);
 
-        // Build the URL in Todoist format:
+        // Use the EWS ID directly (no conversion)
+        // This might be the format that deep links expect
+        const encodedItemId = encodeURIComponent(itemId);
+
+        // Build the URL in Todoist format using the original EWS ID:
         // https://outlook.cloud.microsoft/mail/deeplink/read/[ID]?ItemID=[encoded-ID]&exvsurl=1
-        const emailLink = `https://outlook.cloud.microsoft/mail/deeplink/read/${restId}?ItemID=${encodedRestId}&exvsurl=1`;
+        const emailLink = `https://outlook.cloud.microsoft/mail/deeplink/read/${itemId}?ItemID=${encodedItemId}&exvsurl=1`;
 
         return emailLink;
     } catch (error) {
