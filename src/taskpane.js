@@ -3,11 +3,6 @@ import './taskpane.css';
 Office.onReady((info) => {
     if (info.host === Office.HostType.Outlook) {
         document.getElementById("copyLinkBtn").onclick = copyEmailLinkToClipboard;
-
-        // Auto-copy when task pane opens
-        setTimeout(() => {
-            copyEmailLinkToClipboard();
-        }, 500); // Small delay to ensure Office.js is fully ready
     }
 });
 
@@ -25,25 +20,7 @@ async function getEmailLink() {
             throw new Error("Unable to get email ID");
         }
 
-        // Log different ID formats for debugging
-        console.log("Original EWS ID:", itemId);
-
-        // Try REST v2.0 conversion
-        const restIdV2 = Office.context.mailbox.convertToRestId(
-            itemId,
-            Office.MailboxEnums.RestVersion.v2_0
-        );
-        console.log("REST ID v2.0:", restIdV2);
-
-        // Try REST v1.0 conversion
-        const restIdV1 = Office.context.mailbox.convertToRestId(
-            itemId,
-            Office.MailboxEnums.RestVersion.v1_0
-        );
-        console.log("REST ID v1.0:", restIdV1);
-
-        // Use the EWS ID directly (no conversion)
-        // This might be the format that deep links expect
+        // Use the EWS ID directly (no conversion needed for deep links)
         const encodedItemId = encodeURIComponent(itemId);
 
         // Build the URL in Todoist format using the original EWS ID:
