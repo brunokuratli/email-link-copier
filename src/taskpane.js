@@ -12,34 +12,46 @@ Office.onReady((info) => {
 });
 
 async function getEmailLink() {
-    try {
-        // Check if we have access to the item
-        if (!Office.context.mailbox || !Office.context.mailbox.item) {
-            throw new Error("No email item is currently selected");
+    return new Promise((resolve, reject) => {
+        try {
+            // Check if we have access to the item
+            if (!Office.context.mailbox || !Office.context.mailbox.item) {
+                reject(new Error("No email item is currently selected"));
+                return;
+            }
+
+            // Get the item ID using getItemIdAsync
+            Office.context.mailbox.item.getItemIdAsync((result) => {
+                if (result.status === Office.AsyncResultStatus.Succeeded) {
+                    const itemId = result.value;
+
+                    // Convert to REST ID
+                    try {
+                        const restId = Office.context.mailbox.convertToRestId(
+                            itemId,
+                            Office.MailboxEnums.RestVersion.v2_0
+                        );
+
+                        // URL encode the REST ID for the query parameter
+                        const encodedRestId = encodeURIComponent(restId);
+
+                        // Build the URL in Todoist format:
+                        // https://outlook.cloud.microsoft/mail/deeplink/read/[ID]?ItemID=[encoded-ID]&exvsurl=1
+                        const emailLink = `https://outlook.cloud.microsoft/mail/deeplink/read/${restId}?ItemID=${encodedRestId}&exvsurl=1`;
+
+                        resolve(emailLink);
+                    } catch (convertError) {
+                        reject(new Error("Failed to convert ID: " + convertError.message));
+                    }
+                } else {
+                    reject(new Error("Failed to get item ID: " + result.error.message));
+                }
+            });
+        } catch (error) {
+            console.error("Error in getEmailLink:", error);
+            reject(error);
         }
-
-        // Get the item ID directly from the item property
-        const itemId = Office.context.mailbox.item.itemId;
-
-        if (!itemId) {
-            throw new Error("Unable to get email ID");
-        }
-
-        // Convert EWS ID to REST ID format
-        const restId = Office.context.mailbox.convertToRestId(
-            itemId,
-            Office.MailboxEnums.RestVersion.v2_0
-        );
-
-        // Use the deeplink/read format which opens the email directly
-        // This format works for opening emails from external links
-        const emailLink = `https://outlook.office.com/mail/deeplink/read/${restId}`;
-
-        return emailLink;
-    } catch (error) {
-        console.error("Error in getEmailLink:", error);
-        throw error;
-    }
+    });
 }
 
 async function copyToClipboard(text) {
