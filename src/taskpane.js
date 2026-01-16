@@ -3,6 +3,11 @@ import './taskpane.css';
 Office.onReady((info) => {
     if (info.host === Office.HostType.Outlook) {
         document.getElementById("copyLinkBtn").onclick = copyEmailLinkToClipboard;
+
+        // Auto-copy when task pane opens (works in web, may fail silently in desktop)
+        setTimeout(() => {
+            copyEmailLinkToClipboard();
+        }, 500); // Small delay to ensure Office.js is fully ready
     }
 });
 
@@ -111,7 +116,7 @@ async function copyEmailLinkToClipboard() {
         if (copied) {
             showStatus("✓ Email link copied to clipboard!", false);
         } else {
-            showStatus("⚠ Could not copy automatically. Please copy the link manually below.", true);
+            showStatus("Link ready! Use the button to copy.", false);
         }
     } catch (error) {
         console.error("Error in copyEmailLinkToClipboard:", error);
